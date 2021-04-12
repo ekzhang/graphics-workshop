@@ -10,5 +10,10 @@
   },
   "devDependencies": {
     "vite": "^2.1.5"
+  },
+  "dependencies": {
+    "gl-matrix": "^3.3.0",
+    "regl": "^2.1.0",
+    "tweakpane": "^2.3.0"
   }
 }

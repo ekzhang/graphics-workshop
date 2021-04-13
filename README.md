@@ -2,7 +2,7 @@
 
 _This repo contains a selection of projects designed to help you learn the basics of computer graphics. We'll be using shaders to render interactive two-dimensional and three-dimensional scenes._
 
-_Each of these projects aims to introduce a graphics technique that is extensively used in real-world applications. The code is designed to run in real time on modern GPUs. The projects offer a large amount of artistic freedom for those interested in creating an aesthetically pleasing result._
+_Each of these projects aims to introduce a graphics technique that is extensively used in real-world applications. The code is designed to run in real time on modern GPUs. Feel free to take creative liberties to create a result that you find aesthetically pleasing!_
 
 <br>
 
@@ -62,27 +62,44 @@ If you are new to graphics or shading languages, I would recommend trying the "q
 
 ### Quilt patterns
 
+This project shows how you can use GPU shaders to render interesting, procedural patterns on a 2D grid. It also serves as a hand-on introduction to the wonderful yet frightening world of GPU shaders.
+
 <p align="center">
-<a href="#deployment">
+<a href="#quilt-patterns">
 <img src="https://i.imgur.com/5QsIZUc.png" width="600">
 </a>
 </p>
-
-This project shows how you can use GPU shaders to render interesting, procedural patterns on a 2D grid. It also serves as a hand-on introduction to the wonderful yet frightening world of GPU shaders.
 
 Before starting, make sure that you are able to open the development server. You should see an oscillating color gradient in your web browser.
 
 1. Look at the provided skeleton code. This is known as a _fragment shader_, and it runs on the GPU. The fragment shader is run on every pixel of the screen, and the pixel number is passed into the code as `gl_FragCoord.xy`. The code outputs by assigning to `gl_FragColor`, which is the color at that pixel. It is a `vec4` or 4-dimensional vector with red, green, blue, and transparency channels.
 2. Make sure you understand the starter code before continuing. What do the `coord` and `color` variables represent? What do the `abs()` and `sin()` functions do?
-3. Try uncommenting the sections of the starter code, _one at a time_. Observe the change in output on your screen. Make sure that you understand what each block of code is doing before proceeding to the next one! When you're done, you should now see a moving black-and-white grid pattern.
+3. Uncomment the numbered sections of the starter code, _one at a time_. Observe the change in output on your screen. Make sure that you understand what each block of code is doing before proceeding to the next one! When you're done, you should now see a moving black-and-white grid pattern.
 4. **Task 1:** Make the quilt pattern more colorful! Modify the code so that instead of generating random greyscale colors with the variable `c`, it generates random RGB colors instead.
 5. **Task 2:** Right now, there's just a single pattern that's flown through, but there could be many more. Find a way to use the `seed` variable, which you can modify using the "Parameters" panel at the top right of the screen, to change the shape of the pattern. (_Hint:_ You'll probably want to adjust the condition `if (mod(2.0 * cell.x + cell.y, 5.0) == 1.0)` to change the quilt's geometry.)
 
-Feel free to experiment and share whatever patterns you find most aesthetically pleasing!
+Feel free to experiment and get creative! For example, add stripes or other shapes besides triangles. If you're looking for inspiration, try doing a Google search for "quilt patterns."
 
 _Project skeleton is located in `shaders/quilt.frag.glsl`._
 
 ### Procedural landscapes
+
+This project involves generating an organic procedural landscape, similar to what you might see in open world games like Minecraft.
+
+<p align="center">
+<a href="#procedural-landscapes">
+<img src="https://i.imgur.com/elM7R8w.png" width="600">
+</a>
+</p>
+
+To view in your browser, choose the "project" setting in the controls pane on the top-right and select this project.
+
+1. To generate natural appearances, we will be using a popular form of pseudo-randomness called [_simplex noise_](https://en.wikipedia.org/wiki/Simplex_noise). Feel free to read online about this algorithm. The function `float snoise(vec2)` takes in a 2-vector on the screen and outputs a scalar noise value at that location.
+2. Try changing the "seed" at the top-right of the screen. You should see the rendered output take a completely fresh shape with new noise values.
+3. Uncomment the first block of code, one at a time. What do you notice visually as higher-frequency noise scales are added to the color?
+4. Uncomment the second block of code, and observe how thresholding (in particular, the `mix` and `smoothstep` functions) can be used to interpolate between values.
+5. Uncomment the third block of code to generate land objects.
+6. **Task 1:** In addition to elevation, add another parameter such as _temperature_ that you will have to independently sample from another noise map. Experiment with using temperature to change the shading and indicate new biomes.
 
 _Project skeleton is located in `shaders/landscape.frag.glsl`._
 
@@ -108,7 +125,7 @@ The project has a [Tweakpane](https://cocopon.github.io/tweakpane/) component in
 
 For 3D projects, the main `<canvas>` element has an event listener for mouse and touch events, which should allow you to move the camera by clicking and dragging. Data is passed in through the appropriate uniform variables.
 
-When you're done with the workshop, each project should render without errors or visual artifacts, and the results should be convincing.
+When you're done with the workshop, each project should render without errors or visual artifacts, and the outputs should be interesting.
 
 <br>
 

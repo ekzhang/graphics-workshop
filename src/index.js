@@ -4,6 +4,8 @@ import { mat4 } from "gl-matrix";
 
 import quiltFrag from "../shaders/quilt.frag.glsl?raw";
 import quiltVert from "../shaders/quilt.vert.glsl?raw";
+import landscapeFrag from "../shaders/landscape.frag.glsl?raw";
+import landscapeVert from "../shaders/landscape.vert.glsl?raw";
 import createCamera from "./camera";
 
 const regl = Regl();
@@ -16,31 +18,47 @@ const camera = createCamera(document.getElementsByTagName("canvas")[0], {
 const params = initPane();
 
 function initPane() {
-  const pane = new Tweakpane({ title: "Parameters" });
+  const pane = new Tweakpane({ title: "Controls" });
   const params = {
     project: "quilt",
     seed: 0,
-    mesh: 1,
+    scale: 20,
+    mesh: "...",
+    fps: 0,
   };
 
-  const options = {
-    "Quilt patterns": "quilt",
-    "Procedural landscapes": "landscape",
-    "Rasterization and shading": "shading",
-    "Contour sketching": "contours",
-    "Ray tracing": "raytracing",
-  };
-
-  pane.addInput(params, "project", { options });
+  pane.addInput(params, "project", {
+    options: {
+      "Quilt patterns": "quilt",
+      "Procedural landscapes": "landscape",
+      "Rasterization and shading": "shading",
+      "Contour sketching": "contours",
+      "Ray tracing": "raytracing",
+    },
+  });
 
   const inputs = [
     [pane.addInput(params, "seed", { min: 0, max: 1 }), ["quilt", "landscape"]],
+    [pane.addInput(params, "scale", { min: 10, max: 30 }), ["landscape"]],
+    [
+      pane.addInput(params, "mesh", {
+        options: {
+          "Stanford Bunny": "...",
+          "Utah Teapot": "...1",
+          "Trefoil Knot": "...2",
+          Dragon: "...3",
+          Suzanne: "...4",
+        },
+      }),
+      ["shading", "contours"],
+    ],
   ];
 
+  pane.addMonitor(params, "fps");
   pane.addSeparator();
   pane.addButton({ title: "Instructions" }).on("click", () => {
     const a = document.createElement("a");
-    a.href = "https://github.com/ekzhang/graphics-workshop";
+    a.href = "https://github.com/ekzhang/graphics-workshop#readme";
     a.target = "_blank";
     a.click();
   });
@@ -100,10 +118,11 @@ const draw = {
     },
   }),
   landscape: regl({
-    frag: quiltFrag,
-    vert: quiltVert,
+    frag: landscapeFrag,
+    vert: landscapeVert,
     uniforms: {
       seed: () => params.seed,
+      scale: () => params.scale,
     },
   }),
   shading: regl({
@@ -120,9 +139,17 @@ const draw = {
   }),
 };
 
+const frameTimes = [...Array(60)].fill(0);
 regl.frame(() => {
+  const lastTime = frameTimes.shift();
+  const time = performance.now();
+  frameTimes.push(time);
+  if (lastTime !== 0) {
+    params.fps = 1000 / ((time - lastTime) / frameTimes.length);
+  }
   common(() => {
     regl.clear({ color: [0, 0, 0, 1] });
     draw[params.project]();
+    const endTime = performance.now();
   });
 });

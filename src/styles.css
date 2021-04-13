@@ -6,3 +6,8 @@ body {
 canvas {
   z-index: -1;
 }
+
+.github-corner > svg {
+  left: 0;
+  transform: scale(-1, 1);
+}

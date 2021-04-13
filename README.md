@@ -1,8 +1,8 @@
 # Graphics Workshop
 
-_This repo contains a selection of projects designed to help you learn the basics of computer graphics. We'll be using code to render interactive two-dimensional and three-dimensional scenes._
+_This repo contains a selection of projects designed to help you learn the basics of computer graphics. We'll be using shaders to render interactive two-dimensional and three-dimensional scenes._
 
-_Each of these projects is based on graphics that are used in real-world applications. The code is designed to render in real time, taking advantage of GPU shaders. They all offer artistic freedom for those interested in aesthetics._
+_Each of these projects aims to introduce a graphics technique that is extensively used in real-world applications. The code is designed to run in real time on modern GPUs. The projects offer a large amount of artistic freedom for those interested in creating an aesthetically pleasing result._
 
 <br>
 
@@ -25,7 +25,7 @@ _Each of these projects is based on graphics that are used in real-world applica
 
 This workshop covers fragment shaders ([GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)), procedural texture generation, rasterization, lighting calculations, and real-time ray tracing.
 
-All of the projects will be developed in a harness that runs the graphics code in a web browser, using a technology called WebGL. This allows us to use modern web development tools to iterate quickly and easily share your work with others. However, all of the wrapper code has been provided for you, so you will not need to write JavaScript code directly.
+All of the projects will be developed in a harness that runs the graphics code in a web browser, using a technology called WebGL. This allows us to use modern web development tools to iterate quickly and easily share your work with others. However, you will not need to write JavaScript code yourself, as all of the wrapper code has been provided for you.
 
 To get started, **make sure that you have [Node.js v14](https://nodejs.org/en/) and [NPM](https://www.npmjs.com/) installed**. **Fork this repository**, and then **clone it to your computer**. Then, **run the following commands**:
 
@@ -58,9 +58,27 @@ _Explanation:_ The first command installs dependencies in the `node_modules/` fo
 
 Here is an introduction to each of the projects.
 
-If you are new to graphics or shading languages, I would recommend you try "quilt patterns" first. You should also complete "rasterization and shading" before starting the "contour sketching" and "ray tracing" projects.
+If you are new to graphics or shading languages, I would recommend trying the "quilt patterns" project first. You should also complete "rasterization and shading" before starting the "contour sketching" and "ray tracing" projects.
 
 ### Quilt patterns
+
+<p align="center">
+<a href="#deployment">
+<img src="https://i.imgur.com/5QsIZUc.png" width="600">
+</a>
+</p>
+
+This project shows how you can use GPU shaders to render interesting, procedural patterns on a 2D grid. It also serves as a hand-on introduction to the wonderful yet frightening world of GPU shaders.
+
+Before starting, make sure that you are able to open the development server. You should see an oscillating color gradient in your web browser.
+
+1. Look at the provided skeleton code. This is known as a _fragment shader_, and it runs on the GPU. The fragment shader is run on every pixel of the screen, and the pixel number is passed into the code as `gl_FragCoord.xy`. The code outputs by assigning to `gl_FragColor`, which is the color at that pixel. It is a `vec4` or 4-dimensional vector with red, green, blue, and transparency channels.
+2. Make sure you understand the starter code before continuing. What do the `coord` and `color` variables represent? What do the `abs()` and `sin()` functions do?
+3. Try uncommenting the sections of the starter code, _one at a time_. Observe the change in output on your screen. Make sure that you understand what each block of code is doing before proceeding to the next one! When you're done, you should now see a moving black-and-white grid pattern.
+4. **Task 1:** Make the quilt pattern more colorful! Modify the code so that instead of generating random greyscale colors with the variable `c`, it generates random RGB colors instead.
+5. **Task 2:** Right now, there's just a single pattern that's flown through, but there could be many more. Find a way to use the `seed` variable, which you can modify using the "Parameters" panel at the top right of the screen, to change the shape of the pattern. (_Hint:_ You'll probably want to adjust the condition `if (mod(2.0 * cell.x + cell.y, 5.0) == 1.0)` to change the quilt's geometry.)
+
+Feel free to experiment and share whatever patterns you find most aesthetically pleasing!
 
 _Project skeleton is located in `shaders/quilt.frag.glsl`._
 
@@ -88,6 +106,8 @@ Open your code editor in one window, and **keep the website on the side** while 
 
 The project has a [Tweakpane](https://cocopon.github.io/tweakpane/) component in the top-right corner of the screen. You can use this to change what project is being displayed and modify parameters for that display. It persists settings when you refresh your browser.
 
+For 3D projects, the main `<canvas>` element has an event listener for mouse and touch events, which should allow you to move the camera by clicking and dragging. Data is passed in through the appropriate uniform variables.
+
 When you're done with the workshop, each project should render without errors or visual artifacts, and the results should be convincing.
 
 <br>
@@ -96,7 +116,11 @@ When you're done with the workshop, each project should render without errors or
 
 This repository comes with a Continuous Integration workflow (through GitHub Actions) that compiles the code on the `main` branch, then pushes the built HTML to your repository's `gh-pages` branch. It lets you share a web link that updates whenever you push code changes.
 
-![Screenshot of GitHub Pages setup](https://i.imgur.com/NufzXDw.png)
+<p align="center">
+<a href="#deployment">
+<img src="https://i.imgur.com/NufzXDw.png" width="600">
+</a>
+</p>
 
 If this isn't enabled already, go to the "Pages" section under the "Settings" tab of your repository and set the deploy target to the `gh-pages` branch. Then, after the next `git push`, you will be see your work at `https://<YOUR_USERNAME>.github.io/graphics-workshop/`.
 

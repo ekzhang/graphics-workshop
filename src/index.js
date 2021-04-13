@@ -2,8 +2,8 @@ import Regl from "regl";
 import Tweakpane from "tweakpane";
 import { mat4 } from "gl-matrix";
 
-import fragmentShader from "./frag.glsl?raw";
-import vertexShader from "./vert.glsl?raw";
+import quiltFrag from "../shaders/quilt.frag.glsl?raw";
+import quiltVert from "../shaders/quilt.vert.glsl?raw";
 import createCamera from "./camera";
 
 const regl = Regl();
@@ -18,17 +18,31 @@ const params = initPane();
 function initPane() {
   const pane = new Tweakpane({ title: "Parameters" });
   const params = {
-    scale: 15,
-    grid: 20,
-    example: 2,
-    mode: 3,
+    project: "quilt",
+    seed: 0,
+    mesh: 1,
   };
 
-  pane.addInput(params, "scale", { min: 0, max: 50 });
-  pane.addInput(params, "grid", { min: 5, max: 40, step: 1 });
-  pane.addInput(params, "example", { options: { torus: 1, csg: 2 } });
-  pane.addInput(params, "mode", {
-    options: { shading: 3, curvature: 2, normal: 1 },
+  const options = {
+    "Quilt patterns": "quilt",
+    "Procedural landscapes": "landscape",
+    "Rasterization and shading": "shading",
+    "Contour sketching": "contours",
+    "Ray tracing": "raytracing",
+  };
+
+  pane.addInput(params, "project", { options });
+
+  const inputs = [
+    [pane.addInput(params, "seed", { min: 0, max: 1 }), ["quilt", "landscape"]],
+  ];
+
+  pane.addSeparator();
+  pane.addButton({ title: "Instructions" }).on("click", () => {
+    const a = document.createElement("a");
+    a.href = "https://github.com/ekzhang/graphics-workshop";
+    a.target = "_blank";
+    a.click();
   });
 
   const saved = localStorage.getItem("graphics-workshop");
@@ -40,28 +54,21 @@ function initPane() {
     }
   }
 
-  pane.on("change", () => {
+  const update = () => {
     const data = pane.exportPreset();
     localStorage.setItem("graphics-workshop", JSON.stringify(data));
-  });
+    for (const [input, projects] of inputs) {
+      input.hidden = !projects.includes(params.project);
+    }
+  };
+
+  update();
+  pane.on("change", update);
 
   return params;
 }
 
 const common = regl({
-  uniforms: {
-    view: () => mat4.lookAt([], camera.eye, camera.center, [0, 1, 0]),
-    resolution: ({ drawingBufferWidth, drawingBufferHeight }) => [
-      drawingBufferWidth,
-      drawingBufferHeight,
-    ],
-    time: regl.context("time"),
-  },
-});
-
-const draw = regl({
-  frag: fragmentShader,
-  vert: vertexShader,
   attributes: {
     position: [
       [-1, 1],
@@ -74,11 +81,48 @@ const draw = regl({
     [0, 1, 2],
     [2, 1, 3],
   ],
+  uniforms: {
+    view: () => mat4.lookAt([], camera.eye, camera.center, [0, 1, 0]),
+    resolution: ({ drawingBufferWidth, drawingBufferHeight }) => [
+      drawingBufferWidth,
+      drawingBufferHeight,
+    ],
+    time: regl.context("time"),
+  },
 });
+
+const draw = {
+  quilt: regl({
+    frag: quiltFrag,
+    vert: quiltVert,
+    uniforms: {
+      seed: () => params.seed,
+    },
+  }),
+  landscape: regl({
+    frag: quiltFrag,
+    vert: quiltVert,
+    uniforms: {
+      seed: () => params.seed,
+    },
+  }),
+  shading: regl({
+    frag: quiltFrag,
+    vert: quiltVert,
+  }),
+  contours: regl({
+    frag: quiltFrag,
+    vert: quiltVert,
+  }),
+  raytracing: regl({
+    frag: quiltFrag,
+    vert: quiltVert,
+  }),
+};
 
 regl.frame(() => {
   common(() => {
     regl.clear({ color: [0, 0, 0, 1] });
-    draw();
+    draw[params.project]();
   });
 });

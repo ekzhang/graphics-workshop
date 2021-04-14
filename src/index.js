@@ -7,16 +7,7 @@ import knotUrl from "../models/knot.obj.json?url";
 import sphereUrl from "../models/sphere.obj.json?url";
 import suzanneUrl from "../models/suzanne.obj.json?url";
 import teapotUrl from "../models/teapot.obj.json?url";
-import quiltFrag from "../shaders/quilt.frag.glsl?raw";
-import quiltVert from "../shaders/quilt.vert.glsl?raw";
-import contoursFrag from "../shaders/contours.frag.glsl?raw";
-import contoursVert from "../shaders/contours.vert.glsl?raw";
-import landscapeFrag from "../shaders/landscape.frag.glsl?raw";
-import landscapeVert from "../shaders/landscape.vert.glsl?raw";
-import shadingFrag from "../shaders/shading.frag.glsl?raw";
-import shadingVert from "../shaders/shading.vert.glsl?raw";
-import raytracingFrag from "../shaders/raytracing.frag.glsl?raw";
-import raytracingVert from "../shaders/raytracing.vert.glsl?raw";
+import shaders from "./shaders";
 import createCamera from "./camera";
 
 const regl = Regl({ extensions: ["OES_standard_derivatives"] });
@@ -145,15 +136,15 @@ const common = regl({
 
 const draw = {
   quilt: regl({
-    frag: quiltFrag,
-    vert: quiltVert,
+    frag: () => shaders.quiltFrag,
+    vert: () => shaders.quiltVert,
     uniforms: {
       seed: () => params.seed,
     },
   }),
   landscape: regl({
-    frag: landscapeFrag,
-    vert: landscapeVert,
+    frag: () => shaders.landscapeFrag,
+    vert: () => shaders.landscapeVert,
     uniforms: {
       seed: () => params.seed,
       scale: () => params.scale,
@@ -170,8 +161,8 @@ const draw = {
       shininess: () => params.shininess,
     },
     elements: () => mesh.elements,
-    frag: shadingFrag,
-    vert: shadingVert,
+    frag: () => shaders.shadingFrag,
+    vert: () => shaders.shadingVert,
   }),
   contours: regl({
     attributes: {
@@ -184,12 +175,12 @@ const draw = {
       shininess: () => params.shininess,
     },
     elements: () => mesh.elements,
-    frag: contoursFrag,
-    vert: contoursVert,
+    frag: () => shaders.contoursFrag,
+    vert: () => shaders.contoursVert,
   }),
   raytracing: regl({
-    frag: raytracingFrag,
-    vert: raytracingVert,
+    frag: () => shaders.raytracingFrag,
+    vert: () => shaders.raytracingVert,
   }),
 };
 
@@ -206,7 +197,13 @@ updateMesh(params.mesh).then(() => {
       if (params.project === "contours") regl.clear({ color: [1, 1, 1, 1] });
       else regl.clear({ color: [0, 0, 0, 1] });
       draw[params.project]();
-      const endTime = performance.now();
     });
   });
 });
+
+// Hot module reloading for shader code
+if (import.meta.hot) {
+  import.meta.hot.accept("./shaders.js", (module) => {
+    Object.assign(shaders, module.default);
+  });
+}

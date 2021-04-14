@@ -153,13 +153,15 @@ You might find this [non-technical introductory video by Disney](https://youtu.b
 2. **Task 1:** Fill in the code for the `march()` function, which takes a ray as input and returns the point of first intersection with any object in the scene. [Hint: You will need to call the `map()` function in a loop.]
 3. **Task 2:** Implement shadows. In the `illuminate()` function, before doing lighting calculations, add a conditional statement that first checks if the ray from the point to the light source is unobstructed.
 
+If you're interested in learning more about ray tracing, check out [rpt](https://github.com/ekzhang/rpt/), which is a physically-based path tracer written in Rust with a lot more features.
+
 _Project skeleton is located in `shaders/raytracing.frag.glsl`._
 
 <br>
 
 ## Workflow
 
-Open your code editor in one window, and **keep the website on the side** while you're writing your shader code. It's extremely useful to see what happens to the output in real time as you edit your code. Your browser should automatically reload (thanks to [Vite](https://vitejs.dev/)) whenever you change a file and save it.
+Open your code editor in one window, and **keep the website on the side** while you're writing your shader code. It's extremely useful to see what happens to the output in real time as you edit your code. Your browser should instantly update (using [Vite](https://vitejs.dev/)'s hot module replacement feature) whenever you change a file.
 
 The project has a [Tweakpane](https://cocopon.github.io/tweakpane/) component in the top-right corner of the screen. You can use this to change what project is being displayed and modify parameters for that display. It persists settings when you refresh your browser.
 

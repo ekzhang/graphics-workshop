@@ -11,7 +11,7 @@ varying vec3 vNormal;
 vec3 illuminate(vec3 lightPosition) {
     vec3 wi = lightPosition - vPosition;
     float intensity = 1.0 / dot(wi, wi); // inverse-square law
-    vec3 diffuse = kd * max(dot(normalize(wi), vNormal), 0.0);
+    vec3 diffuse = kd * max(dot(normalize(wi), normalize(vNormal)), 0.0);
 
     // 1. Your specular highlights code goes here!
     //
@@ -20,7 +20,8 @@ vec3 illuminate(vec3 lightPosition) {
     //    camera, by subtracting vPosition from eye and calling
     //    normalize().
     //  - Compute the reflected incident light vector r, by reflecting
-    //    normalize(wi) about vNormal using the reflect() function.
+    //    normalize(wi) about normalize(vNormal) using the reflect()
+    //    function.
     //  - Take the dot product of r and wo, then raise this to the
     //    exponent of the shininess coefficient. (Make sure your
     //    result is not negative!)

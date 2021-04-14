@@ -13,7 +13,7 @@ _Each of these projects aims to introduce an important graphics technique that i
   - [**Quilt patterns**](#quilt-patterns)
   - [**Procedural landscapes**](#procedural-landscapes)
   - [**Rasterization and shading**](#rasterization-and-shading)
-  - [**Contour sketching**](#contour-sketching)
+  - [**Stylized rendering**](#stylized-rendering)
   - [**Ray tracing**](#ray-tracing)
 - [**Workflow**](#workflow) — Recommended way to work through the workshop
 - [**Deployment**](#deployment) — Explanation of how automated deployment is set up
@@ -58,7 +58,7 @@ _Explanation:_ The first command installs dependencies in the `node_modules/` fo
 
 Here is an introduction to each of the projects.
 
-If you are new to graphics or shading languages, I would recommend trying the "quilt patterns" project first. You should also complete "rasterization and shading" before starting the "contour sketching" and "ray tracing" projects.
+If you are new to graphics or shading languages, I would recommend trying the "quilt patterns" project first. You should also complete "rasterization and shading" before starting the "stylized rendering" and "ray tracing" projects.
 
 ### Quilt patterns
 
@@ -109,7 +109,7 @@ This project renders a 3D triangle mesh using the _rasterization_ method that is
 
 <p align="center">
 <a href="#rasterization-and-shading">
-<img src="https://i.imgur.com/3Ikui7u.png" width="600">
+<img src="https://i.imgur.com/aLXzTUM.png" width="600">
 </a>
 </p>
 
@@ -121,11 +121,23 @@ Three-dimensional graphics can be much more complex than its two-dimensional cou
 2. Try changing the value of `mesh` to see your code rendering different shapes besides the teapot. Also, you can play with `kd` to change the color of the object.
 3. **Task:** Right now, the starter code has a function `illuminate()` which takes in the position of a light and returns how much color that light contributes to the current pixel. At the moment, the rendered result looks a little "flat" because the code only implements the diffuse component of the [Phong reflectance model](https://en.wikipedia.org/wiki/Phong_reflection_model). Based on the Wikipedia article, and using the comments as a guide, update the code to also add the Phong specular component. Your task is complete when the teapot looks similar to the image above.
 
-If you're curious to learn more about lighting models, try upgrading your Phong shader to a microfacet model such the [Cook-Torrance BRDF](http://www.codinglabs.net/article_physically_based_rendering_cook_torrance.aspx).
+If you're curious to learn more about lighting models, try upgrading your Phong shader to a microfacet model such the [Cook-Torrance BRDF](http://www.codinglabs.net/article_physically_based_rendering_cook_torrance.aspx). If you do, you may also want to implement [sRGB gamma correction](https://en.wikipedia.org/wiki/Gamma_correction).
 
 _Project skeleton is located in `shaders/shading.frag.glsl`._
 
-### Contour sketching
+### Stylized rendering
+
+This project explores stylized rendering, also known as [non-photorealistic rendering](https://en.wikipedia.org/wiki/Non-photorealistic_rendering). This is an area of graphics that gives up being faithful to real life, but enables much more creative expression in mimicking expressive styles.
+
+<p align="center">
+<a href="#stylized-rendering">
+<img src="https://i.imgur.com/jWSXA8g.png" width="600">
+</a>
+</p>
+
+The code for this project is very similar to that of the last rasterization and shading project. However, after doing lighting calculations, we do not output the color immediately. Instead, we discretize it and shade in different styles based on a thresholded value of the luma intensity. Here, we mimic the art style found in comic books.
+
+1. **Task:** Once again, fill in your code for specular highlights in the `illuminate()` function, similar to last time. How does this change the output's appearance as you rotate the camera view? You may need to tweak some parameters to obtain an aesthetically pleasing result.
 
 _Project skeleton is located in `shaders/contours.frag.glsl`._
 

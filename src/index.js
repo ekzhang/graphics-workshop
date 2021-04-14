@@ -9,13 +9,15 @@ import suzanneUrl from "../models/suzanne.obj.json?url";
 import teapotUrl from "../models/teapot.obj.json?url";
 import quiltFrag from "../shaders/quilt.frag.glsl?raw";
 import quiltVert from "../shaders/quilt.vert.glsl?raw";
+import contoursFrag from "../shaders/contours.frag.glsl?raw";
+import contoursVert from "../shaders/contours.vert.glsl?raw";
 import landscapeFrag from "../shaders/landscape.frag.glsl?raw";
 import landscapeVert from "../shaders/landscape.vert.glsl?raw";
 import shadingFrag from "../shaders/shading.frag.glsl?raw";
 import shadingVert from "../shaders/shading.vert.glsl?raw";
 import createCamera from "./camera";
 
-const regl = Regl();
+const regl = Regl({ extensions: ["OES_standard_derivatives"] });
 
 const camera = createCamera(document.getElementsByTagName("canvas")[0], {
   eye: [1.0, 0.0, 5.2],
@@ -43,7 +45,7 @@ function initPane() {
       "Quilt patterns": "quilt",
       "Procedural landscapes": "landscape",
       "Rasterization and shading": "shading",
-      "Contour sketching": "contours",
+      "Stylized rendering": "contours",
       "Ray tracing": "raytracing",
     },
   });
@@ -65,9 +67,12 @@ function initPane() {
         .on("change", (event) => updateMesh(event.value)),
       ["shading", "contours"],
     ],
-    [pane.addInput(params, "kd"), ["shading"]],
-    [pane.addInput(params, "ks"), ["shading"]],
-    [pane.addInput(params, "shininess", { min: 1, max: 9 }), ["shading"]],
+    [pane.addInput(params, "kd"), ["shading", "contours"]],
+    [pane.addInput(params, "ks"), ["shading", "contours"]],
+    [
+      pane.addInput(params, "shininess", { min: 1, max: 9 }),
+      ["shading", "contours"],
+    ],
   ];
 
   pane.addMonitor(params, "fps");
@@ -167,8 +172,18 @@ const draw = {
     vert: shadingVert,
   }),
   contours: regl({
-    frag: quiltFrag,
-    vert: quiltVert,
+    attributes: {
+      position: () => mesh.vertices,
+      normal: () => mesh.normals,
+    },
+    uniforms: {
+      kd: () => [params.kd.r / 255, params.kd.g / 255, params.kd.b / 255],
+      ks: () => [params.ks.r / 255, params.ks.g / 255, params.ks.b / 255],
+      shininess: () => params.shininess,
+    },
+    elements: () => mesh.elements,
+    frag: contoursFrag,
+    vert: contoursVert,
   }),
   raytracing: regl({
     frag: quiltFrag,
@@ -186,7 +201,8 @@ updateMesh(params.mesh).then(() => {
       params.fps = 1000 / ((time - lastTime) / frameTimes.length);
     }
     common(() => {
-      regl.clear({ color: [0, 0, 0, 1] });
+      if (params.project === "contours") regl.clear({ color: [1, 1, 1, 1] });
+      else regl.clear({ color: [0, 0, 0, 1] });
       draw[params.project]();
       const endTime = performance.now();
     });

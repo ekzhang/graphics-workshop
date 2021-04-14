@@ -15,6 +15,8 @@ import landscapeFrag from "../shaders/landscape.frag.glsl?raw";
 import landscapeVert from "../shaders/landscape.vert.glsl?raw";
 import shadingFrag from "../shaders/shading.frag.glsl?raw";
 import shadingVert from "../shaders/shading.vert.glsl?raw";
+import raytracingFrag from "../shaders/raytracing.frag.glsl?raw";
+import raytracingVert from "../shaders/raytracing.vert.glsl?raw";
 import createCamera from "./camera";
 
 const regl = Regl({ extensions: ["OES_standard_derivatives"] });
@@ -186,8 +188,8 @@ const draw = {
     vert: contoursVert,
   }),
   raytracing: regl({
-    frag: quiltFrag,
-    vert: quiltVert,
+    frag: raytracingFrag,
+    vert: raytracingVert,
   }),
 };
 

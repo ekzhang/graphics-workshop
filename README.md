@@ -143,6 +143,16 @@ _Project skeleton is located in `shaders/contours.frag.glsl`._
 
 ### Ray tracing
 
+This project is a real-time ray tracer implemented as a GPU shader. Ray tracing is the gold standard in photorealistic rendering. Here's how the Academy Award-winning textbook _Physically Based Rendering_ describes it:
+
+> `pbrt` is based on the _ray-tracing_ algorithm. Ray tracing is an elegant technique that has its origins in lens making; Carl Friedrich Gauß traced rays through lenses by hand in the 19th century. Ray-tracing algorithms on computers follow the path of infinitesimal rays of light through the scene until they intersect a surface. This approach gives a simple method for finding the first visible object as seen from any particular position and direction and is the basis for many rendering algorithms.
+
+You might find this [non-technical introductory video by Disney](https://youtu.be/frLwRLS_ZR0) to provide helpful context.
+
+1. To parallelize our ray tracer and run it on a GPU shader, we will use a geometry modeling technique known as [_signed distance fields (SDFs)_](https://en.wikipedia.org/wiki/Signed_distance_function). The `map()` function returns a signed distance corresponding to the closest point on the surface of any object in the scene.
+2. **Task 1:** Fill in the code for the `march()` function, which takes a ray as input and returns the point of first intersection with any object in the scene. [Hint: You will need to call the `map()` function in a loop.]
+3. **Task 2:** Implement shadows. In the `illuminate()` function, before doing lighting calculations, add a conditional statement that first checks if the ray from the point to the light source is unobstructed.
+
 _Project skeleton is located in `shaders/raytracing.frag.glsl`._
 
 <br>

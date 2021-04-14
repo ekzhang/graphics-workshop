@@ -1,8 +1,8 @@
 # Graphics Workshop
 
-_This repo contains a selection of projects designed to help you learn the basics of computer graphics. We'll be using shaders to render interactive two-dimensional and three-dimensional scenes._
+_This repo contains a selection of projects designed to help you learn the basics of computer graphics. We'll be writing shaders to render interactive two-dimensional and three-dimensional scenes._
 
-_Each of these projects aims to introduce a graphics technique that is extensively used in real-world applications. The code is designed to run in real time on modern GPUs. Feel free to take creative liberties to create a result that you find aesthetically pleasing!_
+_Each of these projects aims to introduce an important graphics technique that is extensively used in real-world applications. The code is designed to run in real time on modern GPUs, without requiring any extra software. Feel free to take creative liberties to produce a result that you find aesthetically pleasing!_
 
 <br>
 
@@ -25,7 +25,7 @@ _Each of these projects aims to introduce a graphics technique that is extensive
 
 This workshop covers fragment shaders ([GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language)), procedural texture generation, rasterization, lighting calculations, and real-time ray tracing.
 
-All of the projects will be developed in a harness that runs the graphics code in a web browser, using a technology called WebGL. This allows us to use modern web development tools to iterate quickly and easily share your work with others. However, you will not need to write JavaScript code yourself, as all of the wrapper code has been provided for you.
+All of the projects will be developed in a harness that runs the graphics code in a web browser, using a standard technology called WebGL. This allows us to use modern web development tools to iterate quickly and easily share your work with others. However, you will not need to write JavaScript code yourself, as all of the wrapper code has been provided for you.
 
 To get started, **make sure that you have [Node.js v14](https://nodejs.org/en/) and [NPM](https://www.npmjs.com/) installed**. **Fork this repository**, and then **clone it to your computer**. Then, **run the following commands**:
 
@@ -94,16 +94,34 @@ This project involves generating an organic procedural landscape, similar to wha
 
 To view in your browser, choose the "project" setting in the controls pane on the top-right and select this project.
 
-1. To generate natural appearances, we will be using a popular form of pseudo-randomness called [_simplex noise_](https://en.wikipedia.org/wiki/Simplex_noise). Feel free to read online about this algorithm. The function `float snoise(vec2)` takes in a 2-vector on the screen and outputs a scalar noise value at that location.
-2. Try changing the "seed" at the top-right of the screen. You should see the rendered output take a completely fresh shape with new noise values.
-3. Uncomment the first block of code, one at a time. What do you notice visually as higher-frequency noise scales are added to the color?
-4. Uncomment the second block of code, and observe how thresholding (in particular, the `mix` and `smoothstep` functions) can be used to interpolate between values.
-5. Uncomment the third block of code to generate land objects.
-6. **Task 1:** In addition to elevation, add another parameter such as _temperature_ that you will have to independently sample from another noise map. Experiment with using temperature to change the shading and indicate new biomes.
+1. To generate natural appearances, we will be using a popular graphics primitive called [_simplex noise_](https://en.wikipedia.org/wiki/Simplex_noise). Feel free to read online about the theory behind this algorithm. The function `float snoise(vec2)` takes in a 2-vector on the screen and outputs a smooth scalar noise value at that location.
+2. Try changing the "seed" at the top-right of the screen. You should see the rendered output take a new shape, as noise values at different locations are roughly independent.
+3. Uncomment the first block of code, one line at a time. What do you notice visually as higher-frequency noise scales are added to the color? By combining various _octaves_ of noise at different amplitudes, you can change the texture's appearance.
+4. Uncomment the second block of code, and observe how thresholding (in particular, the `mix` and `smoothstep` functions) are used to interpolate colors between elevation values.
+5. Finally, uncomment the third block of code to generate land objects.
+6. **Task:** In addition to elevation, add another parameter such as _temperature_ that is independently sampled from the noise map. Experiment with using temperature to change the shading and indicate map biomes.
 
 _Project skeleton is located in `shaders/landscape.frag.glsl`._
 
 ### Rasterization and shading
+
+This project renders a 3D triangle mesh using the _rasterization_ method that is very popular in real-time computer graphics. This is the same algorithm that most video games are built upon.
+
+<p align="center">
+<a href="#rasterization-and-shading">
+<img src="https://i.imgur.com/3Ikui7u.png" width="600">
+</a>
+</p>
+
+Rasterization works by breaking up a 3D surface into triangles, then drawing each triangle on the screen independently and interpolating variables between them.
+
+Three-dimensional graphics can be much more complex than its two-dimensional counterpart. Unlike in the past projects, the fragment shader will now be evaluated once for each _fragment_ of a triangle, rather than once for every pixel. For this project, we will be focus on shading. See the [Scratchapixel article on the Phong illumination model](https://www.scratchapixel.com/lessons/3d-basic-rendering/phong-shader-BRDF) for background reading.
+
+1. The project starts out by giving you a teapot. You can click and drag on the screen to move your camera position and see different angles of the teapot. This object is stored as a _triangle mesh_, which is a common format in computer graphics.
+2. Try changing the value of `mesh` to see your code rendering different shapes besides the teapot. Also, you can play with `kd` to change the color of the object.
+3. **Task:** Right now, the starter code has a function `illuminate()` which takes in the position of a light and returns how much color that light contributes to the current pixel. At the moment, the rendered result looks a little "flat" because the code only implements the diffuse component of the [Phong reflectance model](https://en.wikipedia.org/wiki/Phong_reflection_model). Based on the Wikipedia article, and using the comments as a guide, update the code to also add the Phong specular component. Your task is complete when the teapot looks similar to the image above.
+
+If you're curious to learn more about lighting models, try upgrading your Phong shader to a microfacet model such the [Cook-Torrance BRDF](http://www.codinglabs.net/article_physically_based_rendering_cook_torrance.aspx).
 
 _Project skeleton is located in `shaders/shading.frag.glsl`._
 

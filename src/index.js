@@ -2,20 +2,28 @@ import Regl from "regl";
 import Tweakpane from "tweakpane";
 import { mat4 } from "gl-matrix";
 
+import gengarUrl from "../models/gengar.obj.json?url";
+import knotUrl from "../models/knot.obj.json?url";
+import sphereUrl from "../models/sphere.obj.json?url";
+import suzanneUrl from "../models/suzanne.obj.json?url";
+import teapotUrl from "../models/teapot.obj.json?url";
 import quiltFrag from "../shaders/quilt.frag.glsl?raw";
 import quiltVert from "../shaders/quilt.vert.glsl?raw";
 import landscapeFrag from "../shaders/landscape.frag.glsl?raw";
 import landscapeVert from "../shaders/landscape.vert.glsl?raw";
+import shadingFrag from "../shaders/shading.frag.glsl?raw";
+import shadingVert from "../shaders/shading.vert.glsl?raw";
 import createCamera from "./camera";
 
 const regl = Regl();
 
 const camera = createCamera(document.getElementsByTagName("canvas")[0], {
-  eye: [1.7, 1.5, 2.9],
+  eye: [1.0, 0.0, 5.2],
   center: [0, 0, 0],
 });
 
 const params = initPane();
+let mesh = null;
 
 function initPane() {
   const pane = new Tweakpane({ title: "Controls" });
@@ -23,8 +31,11 @@ function initPane() {
     project: "quilt",
     seed: 0,
     scale: 20,
-    mesh: "...",
+    mesh: teapotUrl,
     fps: 0,
+    kd: { r: 95, g: 230, b: 213 },
+    ks: { r: 240, g: 240, b: 240 },
+    shininess: 5.0,
   };
 
   pane.addInput(params, "project", {
@@ -41,17 +52,22 @@ function initPane() {
     [pane.addInput(params, "seed", { min: 0, max: 1 }), ["quilt", "landscape"]],
     [pane.addInput(params, "scale", { min: 10, max: 30 }), ["landscape"]],
     [
-      pane.addInput(params, "mesh", {
-        options: {
-          "Stanford Bunny": "...",
-          "Utah Teapot": "...1",
-          "Trefoil Knot": "...2",
-          Dragon: "...3",
-          Suzanne: "...4",
-        },
-      }),
+      pane
+        .addInput(params, "mesh", {
+          options: {
+            Gengar: gengarUrl,
+            Knot: knotUrl,
+            Sphere: sphereUrl,
+            Suzanne: suzanneUrl,
+            Teapot: teapotUrl,
+          },
+        })
+        .on("change", (event) => updateMesh(event.value)),
       ["shading", "contours"],
     ],
+    [pane.addInput(params, "kd"), ["shading"]],
+    [pane.addInput(params, "ks"), ["shading"]],
+    [pane.addInput(params, "shininess", { min: 1, max: 9 }), ["shading"]],
   ];
 
   pane.addMonitor(params, "fps");
@@ -86,6 +102,11 @@ function initPane() {
   return params;
 }
 
+async function updateMesh(path) {
+  const resp = await fetch(path);
+  mesh = await resp.json();
+}
+
 const common = regl({
   attributes: {
     position: [
@@ -101,6 +122,12 @@ const common = regl({
   ],
   uniforms: {
     view: () => mat4.lookAt([], camera.eye, camera.center, [0, 1, 0]),
+    projection: ({ drawingBufferWidth, drawingBufferHeight }) => {
+      const aspectRatio = drawingBufferWidth / drawingBufferHeight;
+      return mat4.perspective([], Math.PI / 6, aspectRatio, 0.01, 100);
+    },
+    eye: () => camera.eye,
+    center: () => camera.center,
     resolution: ({ drawingBufferWidth, drawingBufferHeight }) => [
       drawingBufferWidth,
       drawingBufferHeight,
@@ -126,8 +153,18 @@ const draw = {
     },
   }),
   shading: regl({
-    frag: quiltFrag,
-    vert: quiltVert,
+    attributes: {
+      position: () => mesh.vertices,
+      normal: () => mesh.normals,
+    },
+    uniforms: {
+      kd: () => [params.kd.r / 255, params.kd.g / 255, params.kd.b / 255],
+      ks: () => [params.ks.r / 255, params.ks.g / 255, params.ks.b / 255],
+      shininess: () => params.shininess,
+    },
+    elements: () => mesh.elements,
+    frag: shadingFrag,
+    vert: shadingVert,
   }),
   contours: regl({
     frag: quiltFrag,
@@ -139,17 +176,19 @@ const draw = {
   }),
 };
 
-const frameTimes = [...Array(60)].fill(0);
-regl.frame(() => {
-  const lastTime = frameTimes.shift();
-  const time = performance.now();
-  frameTimes.push(time);
-  if (lastTime !== 0) {
-    params.fps = 1000 / ((time - lastTime) / frameTimes.length);
-  }
-  common(() => {
-    regl.clear({ color: [0, 0, 0, 1] });
-    draw[params.project]();
-    const endTime = performance.now();
+updateMesh(params.mesh).then(() => {
+  const frameTimes = [...Array(60)].fill(0);
+  regl.frame(() => {
+    const lastTime = frameTimes.shift();
+    const time = performance.now();
+    frameTimes.push(time);
+    if (lastTime !== 0) {
+      params.fps = 1000 / ((time - lastTime) / frameTimes.length);
+    }
+    common(() => {
+      regl.clear({ color: [0, 0, 0, 1] });
+      draw[params.project]();
+      const endTime = performance.now();
+    });
   });
 });

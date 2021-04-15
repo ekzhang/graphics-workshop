@@ -147,11 +147,18 @@ This project is a real-time ray tracer implemented as a GPU shader. Ray tracing 
 
 > `pbrt` is based on the _ray-tracing_ algorithm. Ray tracing is an elegant technique that has its origins in lens making; Carl Friedrich Gauß traced rays through lenses by hand in the 19th century. Ray-tracing algorithms on computers follow the path of infinitesimal rays of light through the scene until they intersect a surface. This approach gives a simple method for finding the first visible object as seen from any particular position and direction and is the basis for many rendering algorithms.
 
+<p align="center">
+<a href="#ray-tracing">
+<img src="https://i.imgur.com/1xaJmxY.png" width="600">
+</a>
+</p>
+
 You might find this [non-technical introductory video by Disney](https://youtu.be/frLwRLS_ZR0) to provide helpful context.
 
-1. To parallelize our ray tracer and run it on a GPU shader, we will use a geometry modeling technique known as [_signed distance fields (SDFs)_](https://en.wikipedia.org/wiki/Signed_distance_function). The `map()` function returns a signed distance corresponding to the closest point on the surface of any object in the scene.
-2. **Task 1:** Fill in the code for the `march()` function, which takes a ray as input and returns the point of first intersection with any object in the scene. [Hint: You will need to call the `map()` function in a loop.]
-3. **Task 2:** Implement shadows. In the `illuminate()` function, before doing lighting calculations, add a conditional statement that first checks if the ray from the point to the light source is unobstructed.
+1. To parallelize our ray tracer and run it on a GPU shader, we revert back to running our fragment shader once for every pixel in the screen, like in the 2D graphics examples. However, this time, our shader will do some geometry calculations by shooting rays from the camera for each pixel. The `trace()` function models this behavior by returning the color corresponding to a given ray.
+2. To model geometry, the starter code has set up a simple scene involving three spheres and one circle forming the checkered floor. This geometry is located in the `intersect()` function, which computes the first intersection point (represented by a `Hit` struct) of any ray in the space. Following the pattern shown here, add a fourth sphere to the scene with a different position, color, and radius.
+3. The `calcLighting()` function uses `illuminate()`, which contains a simple implementation of a Phong shader, to compute the lighting at a given point by adding up the contributions of two point lights. Modify this code to add a third point light at a different location, with your choice of intensity. (For inspiration, see [three-point lighting](https://en.wikipedia.org/wiki/Three-point_lighting).)
+4. **Task:** Implement shadows. In the `illuminate()` function, before doing lighting calculations, add a conditional statement checks if the ray from the point to the light source is obstructed or not. If it is obstructed, then you should immediately return `vec3(0.0)` to simulate shadows. [Hint: You will need to use the `intersect()` function with a new `Ray` object that you construct, starting from the point `pos`.]
 
 If you're interested in learning more about ray tracing, check out [rpt](https://github.com/ekzhang/rpt/), which is a physically-based path tracer written in Rust with a lot more features.
 

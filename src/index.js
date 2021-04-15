@@ -31,6 +31,8 @@ function initPane() {
     kd: { r: 95, g: 230, b: 213 },
     ks: { r: 240, g: 240, b: 240 },
     shininess: 5.0,
+    background: { r: 120, g: 178, b: 255 },
+    antialias: true,
   };
 
   pane.addInput(params, "project", {
@@ -66,6 +68,8 @@ function initPane() {
       pane.addInput(params, "shininess", { min: 1, max: 9 }),
       ["shading", "contours"],
     ],
+    [pane.addInput(params, "background"), ["raytracing"]],
+    [pane.addInput(params, "antialias"), ["raytracing"]],
   ];
 
   pane.addMonitor(params, "fps");
@@ -105,6 +109,39 @@ async function updateMesh(path) {
   mesh = await resp.json();
 }
 
+function toColor(color) {
+  return [color.r / 255, color.g / 255, color.b / 255];
+}
+
+function compileShaders() {
+  try {
+    return {
+      quilt: regl({
+        frag: shaders.quiltFrag,
+        vert: shaders.quiltVert,
+      }),
+      landscape: regl({
+        frag: shaders.landscapeFrag,
+        vert: shaders.landscapeVert,
+      }),
+      shading: regl({
+        frag: shaders.shadingFrag,
+        vert: shaders.shadingVert,
+      }),
+      contours: regl({
+        frag: shaders.contoursFrag,
+        vert: shaders.contoursVert,
+      }),
+      raytracing: regl({
+        frag: shaders.raytracingFrag,
+        vert: shaders.raytracingVert,
+      }),
+    };
+  } catch {
+    return null;
+  }
+}
+
 const common = regl({
   attributes: {
     position: [
@@ -134,17 +171,13 @@ const common = regl({
   },
 });
 
-const draw = {
+const setup = {
   quilt: regl({
-    frag: () => shaders.quiltFrag,
-    vert: () => shaders.quiltVert,
     uniforms: {
       seed: () => params.seed,
     },
   }),
   landscape: regl({
-    frag: () => shaders.landscapeFrag,
-    vert: () => shaders.landscapeVert,
     uniforms: {
       seed: () => params.seed,
       scale: () => params.scale,
@@ -156,13 +189,11 @@ const draw = {
       normal: () => mesh.normals,
     },
     uniforms: {
-      kd: () => [params.kd.r / 255, params.kd.g / 255, params.kd.b / 255],
-      ks: () => [params.ks.r / 255, params.ks.g / 255, params.ks.b / 255],
+      kd: () => toColor(params.kd),
+      ks: () => toColor(params.ks),
       shininess: () => params.shininess,
     },
     elements: () => mesh.elements,
-    frag: () => shaders.shadingFrag,
-    vert: () => shaders.shadingVert,
   }),
   contours: regl({
     attributes: {
@@ -170,19 +201,21 @@ const draw = {
       normal: () => mesh.normals,
     },
     uniforms: {
-      kd: () => [params.kd.r / 255, params.kd.g / 255, params.kd.b / 255],
-      ks: () => [params.ks.r / 255, params.ks.g / 255, params.ks.b / 255],
+      kd: () => toColor(params.kd),
+      ks: () => toColor(params.ks),
       shininess: () => params.shininess,
     },
     elements: () => mesh.elements,
-    frag: () => shaders.contoursFrag,
-    vert: () => shaders.contoursVert,
   }),
   raytracing: regl({
-    frag: () => shaders.raytracingFrag,
-    vert: () => shaders.raytracingVert,
+    uniforms: {
+      background: () => toColor(params.background),
+      antialias: () => params.antialias,
+    },
   }),
 };
+
+let draw = compileShaders();
 
 updateMesh(params.mesh).then(() => {
   const frameTimes = [...Array(60)].fill(0);
@@ -196,7 +229,9 @@ updateMesh(params.mesh).then(() => {
     common(() => {
       if (params.project === "contours") regl.clear({ color: [1, 1, 1, 1] });
       else regl.clear({ color: [0, 0, 0, 1] });
-      draw[params.project]();
+      setup[params.project](() => {
+        if (draw) draw[params.project]();
+      });
     });
   });
 });
@@ -205,5 +240,6 @@ updateMesh(params.mesh).then(() => {
 if (import.meta.hot) {
   import.meta.hot.accept("./shaders.js", (module) => {
     Object.assign(shaders, module.default);
+    draw = compileShaders();
   });
 }

@@ -198,6 +198,8 @@ If you're stuck debugging OpenGL shaders, try setting `gl_FragColor` to the resu
 
 If there's a function you're confused about, you can search online through the Khronos documentation. You can also try reading [The Book of Shaders](https://thebookofshaders.com/), which is an excellent technical resource.
 
+[ShaderToy](https://www.shadertoy.com/) is an online community for creating and sharing shaders through WebGL, and you should feel free to take inspiration from their featured demos.
+
 <br>
 
 <sup>

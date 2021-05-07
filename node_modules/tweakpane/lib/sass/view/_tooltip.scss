@@ -1,0 +1,26 @@
+.#{$prefix}-ttv {
+	background-color: var(--in-fg);
+	border-radius: var(--elm-br);
+	color: var(--bs-bg);
+	padding: 2px 4px;
+	pointer-events: none;
+	position: absolute;
+	transform: translate(-50%, -100%);
+
+	&::before {
+		$size: 4px;
+
+		border-color: var(--in-fg) transparent transparent transparent;
+		border-style: solid;
+		border-width: $size / 2;
+		box-sizing: border-box;
+		content: '';
+		font-size: 0.9em;
+		height: $size;
+		left: 50%;
+		margin-left: -$size / 2;
+		position: absolute;
+		top: 100%;
+		width: $size;
+	}
+}

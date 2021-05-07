@@ -1,0 +1,260 @@
+var check = require('./util/check')
+var extend = require('./util/extend')
+var values = require('./util/values')
+
+var GL_FRAGMENT_SHADER = 35632
+var GL_VERTEX_SHADER = 35633
+
+var GL_ACTIVE_UNIFORMS = 0x8B86
+var GL_ACTIVE_ATTRIBUTES = 0x8B89
+
+module.exports = function wrapShaderState (gl, stringStore, stats, config) {
+  // ===================================================
+  // glsl compilation and linking
+  // ===================================================
+  var fragShaders = {}
+  var vertShaders = {}
+
+  function ActiveInfo (name, id, location, info) {
+    this.name = name
+    this.id = id
+    this.location = location
+    this.info = info
+  }
+
+  function insertActiveInfo (list, info) {
+    for (var i = 0; i < list.length; ++i) {
+      if (list[i].id === info.id) {
+        list[i].location = info.location
+        return
+      }
+    }
+    list.push(info)
+  }
+
+  function getShader (type, id, command) {
+    var cache = type === GL_FRAGMENT_SHADER ? fragShaders : vertShaders
+    var shader = cache[id]
+
+    if (!shader) {
+      var source = stringStore.str(id)
+      shader = gl.createShader(type)
+      gl.shaderSource(shader, source)
+      gl.compileShader(shader)
+      check.shaderError(gl, shader, source, type, command)
+      cache[id] = shader
+    }
+
+    return shader
+  }
+
+  // ===================================================
+  // program linking
+  // ===================================================
+  var programCache = {}
+  var programList = []
+
+  var PROGRAM_COUNTER = 0
+
+  function REGLProgram (fragId, vertId) {
+    this.id = PROGRAM_COUNTER++
+    this.fragId = fragId
+    this.vertId = vertId
+    this.program = null
+    this.uniforms = []
+    this.attributes = []
+    this.refCount = 1
+
+    if (config.profile) {
+      this.stats = {
+        uniformsCount: 0,
+        attributesCount: 0
+      }
+    }
+  }
+
+  function linkProgram (desc, command, attributeLocations) {
+    var i, info
+
+    // -------------------------------
+    // compile & link
+    // -------------------------------
+    var fragShader = getShader(GL_FRAGMENT_SHADER, desc.fragId)
+    var vertShader = getShader(GL_VERTEX_SHADER, desc.vertId)
+
+    var program = desc.program = gl.createProgram()
+    gl.attachShader(program, fragShader)
+    gl.attachShader(program, vertShader)
+    if (attributeLocations) {
+      for (i = 0; i < attributeLocations.length; ++i) {
+        var binding = attributeLocations[i]
+        gl.bindAttribLocation(program, binding[0], binding[1])
+      }
+    }
+
+    gl.linkProgram(program)
+    check.linkError(
+      gl,
+      program,
+      stringStore.str(desc.fragId),
+      stringStore.str(desc.vertId),
+      command)
+
+    // -------------------------------
+    // grab uniforms
+    // -------------------------------
+    var numUniforms = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS)
+    if (config.profile) {
+      desc.stats.uniformsCount = numUniforms
+    }
+    var uniforms = desc.uniforms
+    for (i = 0; i < numUniforms; ++i) {
+      info = gl.getActiveUniform(program, i)
+      if (info) {
+        if (info.size > 1) {
+          for (var j = 0; j < info.size; ++j) {
+            var name = info.name.replace('[0]', '[' + j + ']')
+            insertActiveInfo(uniforms, new ActiveInfo(
+              name,
+              stringStore.id(name),
+              gl.getUniformLocation(program, name),
+              info))
+          }
+        }
+        var uniName = info.name
+        if (info.size > 1) {
+          uniName = uniName.replace('[0]', '')
+        }
+        insertActiveInfo(uniforms, new ActiveInfo(
+          uniName,
+          stringStore.id(uniName),
+          gl.getUniformLocation(program, uniName),
+          info))
+      }
+    }
+
+    // -------------------------------
+    // grab attributes
+    // -------------------------------
+    var numAttributes = gl.getProgramParameter(program, GL_ACTIVE_ATTRIBUTES)
+    if (config.profile) {
+      desc.stats.attributesCount = numAttributes
+    }
+
+    var attributes = desc.attributes
+    for (i = 0; i < numAttributes; ++i) {
+      info = gl.getActiveAttrib(program, i)
+      if (info) {
+        insertActiveInfo(attributes, new ActiveInfo(
+          info.name,
+          stringStore.id(info.name),
+          gl.getAttribLocation(program, info.name),
+          info))
+      }
+    }
+  }
+
+  if (config.profile) {
+    stats.getMaxUniformsCount = function () {
+      var m = 0
+      programList.forEach(function (desc) {
+        if (desc.stats.uniformsCount > m) {
+          m = desc.stats.uniformsCount
+        }
+      })
+      return m
+    }
+
+    stats.getMaxAttributesCount = function () {
+      var m = 0
+      programList.forEach(function (desc) {
+        if (desc.stats.attributesCount > m) {
+          m = desc.stats.attributesCount
+        }
+      })
+      return m
+    }
+  }
+
+  function restoreShaders () {
+    fragShaders = {}
+    vertShaders = {}
+    for (var i = 0; i < programList.length; ++i) {
+      linkProgram(programList[i], null, programList[i].attributes.map(function (info) {
+        return [info.location, info.name]
+      }))
+    }
+  }
+
+  return {
+    clear: function () {
+      var deleteShader = gl.deleteShader.bind(gl)
+      values(fragShaders).forEach(deleteShader)
+      fragShaders = {}
+      values(vertShaders).forEach(deleteShader)
+      vertShaders = {}
+
+      programList.forEach(function (desc) {
+        gl.deleteProgram(desc.program)
+      })
+      programList.length = 0
+      programCache = {}
+
+      stats.shaderCount = 0
+    },
+
+    program: function (vertId, fragId, command, attribLocations) {
+      check.command(vertId >= 0, 'missing vertex shader', command)
+      check.command(fragId >= 0, 'missing fragment shader', command)
+
+      var cache = programCache[fragId]
+      if (!cache) {
+        cache = programCache[fragId] = {}
+      }
+      var prevProgram = cache[vertId]
+      if (prevProgram) {
+        prevProgram.refCount++
+        if (!attribLocations) {
+          return prevProgram
+        }
+      }
+      var program = new REGLProgram(fragId, vertId)
+      stats.shaderCount++
+      linkProgram(program, command, attribLocations)
+      if (!prevProgram) {
+        cache[vertId] = program
+      }
+      programList.push(program)
+      return extend(program, {
+        destroy: function () {
+          program.refCount--
+          if (program.refCount <= 0) {
+            gl.deleteProgram(program.program)
+            var idx = programList.indexOf(program)
+            programList.splice(idx, 1)
+            stats.shaderCount--
+          }
+          // no program is linked to this vert anymore
+          if (cache[program.vertId].refCount <= 0) {
+            gl.deleteShader(vertShaders[program.vertId])
+            delete vertShaders[program.vertId]
+            delete programCache[program.fragId][program.vertId]
+          }
+          // no program is linked to this frag anymore
+          if (!Object.keys(programCache[program.fragId]).length) {
+            gl.deleteShader(fragShaders[program.fragId])
+            delete fragShaders[program.fragId]
+            delete programCache[program.fragId]
+          }
+        }
+      })
+    },
+
+    restore: restoreShaders,
+
+    shader: getShader,
+
+    frag: -1,
+    vert: -1
+  }
+}

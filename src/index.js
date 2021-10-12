@@ -1,5 +1,5 @@
 import Regl from "regl";
-import Tweakpane from "tweakpane";
+import { Pane } from "tweakpane";
 import { mat4 } from "gl-matrix";
 
 import gengarUrl from "../models/gengar.obj.json?url";
@@ -21,7 +21,7 @@ const params = initPane();
 let mesh = null;
 
 function initPane() {
-  const pane = new Tweakpane({ title: "Controls" });
+  const pane = new Pane({ title: "Controls" });
   const params = {
     project: "quilt",
     seed: 0,

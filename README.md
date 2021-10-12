@@ -27,7 +27,7 @@ This workshop covers fragment shaders ([GLSL](https://en.wikipedia.org/wiki/Open
 
 All of the projects will be developed in a harness that runs the graphics code in a web browser, using a standard technology called WebGL. This allows us to use modern web development tools to iterate quickly and easily share your work with others. However, you will not need to write JavaScript code yourself, as all of the wrapper code has been provided for you.
 
-To get started, **make sure that you have [Node.js v14](https://nodejs.org/en/) and [NPM](https://www.npmjs.com/) installed**. **Fork this repository**, and then **clone it to your computer**. Then, **run the following commands**:
+To get started, **make sure that you have [Node.js v14+](https://nodejs.org/en/) and [NPM](https://www.npmjs.com/) installed**. **Fork this repository**, and then **clone it to your computer**. Then, **run the following commands**:
 
 ```
 $ npm install
@@ -62,7 +62,7 @@ If you are new to graphics or shading languages, I would recommend trying the "q
 
 ### Quilt patterns
 
-This project shows how you can use GPU shaders to render interesting, procedural patterns on a 2D grid. It also serves as a hand-on introduction to the wonderful yet frightening world of GPU shaders.
+This project shows how you can use GPU shaders to render interesting, procedural patterns on a 2D grid. It also serves as a hands-on introduction to the wonderful yet frightening world of GPU shaders.
 
 <p align="center">
 <a href="#quilt-patterns">

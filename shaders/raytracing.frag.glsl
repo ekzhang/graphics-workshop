@@ -75,6 +75,9 @@ Hit intersect(Ray r) {
         Material(vec3(1.0, 0.4, 0.2), vec3(0.8), true, false));
     sphere(h, r, vec4(-3.5, -1.2, -6.0, 0.8),
         Material(vec3(0.2, 0.6, 0.3), vec3(0.8), false, false));
+    // added another sphere
+    sphere(h, r, vec4(2.5, -1.0, -7.0, 1.0), 
+        Material(vec3(0.8, 0.6, 0.4), vec3(0.8), false, false));
     circle(h, r, -2.0, 50.0,
         Material(vec3(0.8, 0.8, 0.8), vec3(0.0), false, true));
     return h;
@@ -84,6 +87,16 @@ Hit intersect(Ray r) {
 vec3 illuminate(vec3 lightPosition, vec3 pos, vec3 wo, Hit h) {
     vec3 wi = lightPosition - pos;
     vec3 kd = h.material.kd;
+
+    Ray myRay;
+    myRay.origin = pos;
+    myRay.dir = normalize(wi);
+
+    Hit myHit = intersect(myRay);
+    if (myHit.time != inf) {
+        return vec3(0.0);
+    }
+
     if (h.material.checker) {
         // Checkerboard pattern for the floor
         vec2 coords = floor(pos.xz);
@@ -92,10 +105,24 @@ vec3 illuminate(vec3 lightPosition, vec3 pos, vec3 wo, Hit h) {
     float intensity = 1.0 / dot(wi, wi); // inverse-square law
     vec3 diffuse = kd * max(dot(normalize(wi), h.normal), 0.0);
 
+    /*
+struct Ray {
+    vec3 origin;
+    vec3 dir;
+};
+
+struct Hit {
+    float time;
+    vec3 normal;
+    Material material;
+};
+    */
     // Non-dielectric materials have tinted reflections
     vec3 ks = h.material.metal ? h.material.kd : h.material.ks;
     vec3 r = -reflect(normalize(wi), h.normal);
     vec3 specular = ks * pow(max(dot(r, wo), 0.0), 10.0);
+
+    
 
     return intensity * (diffuse + specular);
 }
@@ -105,6 +132,8 @@ vec3 calcLighting(vec3 pos, vec3 wo, Hit h) {
     vec3 color = vec3(0.0);
     color += 100.0 * illuminate(vec3(-3.0, 10.0, 0.0), pos, wo, h);
     color += 200000.0 * illuminate(vec3(0.0, 1000.0, 0.0), pos, wo, h);
+    // added another point of lighting
+    color += 10.0 * illuminate(vec3(6.0, 1.0, 0.0), pos, wo, h);
     return color;
 }
 

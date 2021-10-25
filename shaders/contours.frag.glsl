@@ -15,9 +15,14 @@ vec3 illuminate(vec3 lightPosition) {
     float intensity = 1.0 / dot(wi, wi); // inverse-square law
     vec3 diffuse = kd * max(dot(normalize(wi), normalize(vNormal)), 0.0);
 
-    vec3 specular = vec3(0.0); // Change me!
+    vec3 wo = normalize(eye - vPosition);
+    vec3 r = reflect(-normalize(wi), normalize(vNormal));
+    vec3 result = ks * pow(max(dot(wo, r), 0.0), shininess);
+    vec3 specular = result; // Change me!
+
 
     return intensity * (diffuse + specular);
+    
 }
 
 void main() {
@@ -38,7 +43,7 @@ void main() {
     color = mix(color, darkblue, step(0.2, value));
     color = mix(color, blue, step(0.25, value));
     color = mix(color, dots, step(0.35, value));
-    color = mix(color, vec3(1.0), step(0.45, value));
+    color = mix(color, vec3(1.0), step(0.95, value));
 
     // Edge estimation
     float vn = abs(dot(normalize(vNormal), normalize(vPosition - eye)));
